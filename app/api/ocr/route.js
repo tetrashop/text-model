@@ -14,7 +14,7 @@ export async function POST(req) {
 
     const openai = client();
     const completion = await openai.chat.completions.create({
-      model: "llama3-70b-8192",
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: "متن، اعداد، واحدها، تلرانس‌ها و نمادهای مهندسی را از این رسم استخراج کن. فقط متن استخراجی را برگردان." },
         { role: "user", content: [
