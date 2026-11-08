@@ -10,7 +10,7 @@ export async function POST(req) {
     const currentSpec = spec || emptySpec();
 
     const completion = await openai.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-120b",
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
