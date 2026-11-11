@@ -86,7 +86,7 @@ export default function Home() {
       <section className="chat">
         {messages.map((m, i) => (
           <div key={i} className={"msg " + m.role}>{m.content}</div>
-        ))}
+        )) : null}
         {busy && <div className="msg assistant">در حال پردازش...</div>}
       </section>
       <section className="input">
@@ -112,7 +112,7 @@ export default function Home() {
             <ModelViewer spec={spec} />
 
             <h3 style={{ marginTop: "1rem" }}>ویرایش ابعاد</h3>
-            {spec?.actions?.map((act, i) => (
+            {Array.isArray(spec?.actions) ? spec.actions.filter(Boolean).map((act, i) => (
               <div key={i} style={{ background: "#222", padding: ".5rem", marginBottom: ".5rem", borderRadius: "4px" }}>
                 <div style={{ color: "#3a6", marginBottom: ".25rem" }}>{i+1}. {act.type} ({act.operation})</div>
                 <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
@@ -129,7 +129,7 @@ export default function Home() {
                   })}
                 </div>
               </div>
-            ))}
+            )) : null}
           </div>
         )}
         <h3>spec</h3>
