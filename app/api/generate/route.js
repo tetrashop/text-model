@@ -12,7 +12,7 @@ export async function POST(req) {
     const outFormat = format || spec.format || "stl";
     const safe = (spec.name || "model").replace(/[^\w\-]+/g, "_").slice(0, 40) || "model";
     
-    const fileData = generateFile(spec, outFormat);
+    const fileData = await generateFile(spec, outFormat);
     
     return new Response(fileData, {
       headers: {
