@@ -14,7 +14,7 @@ export async function POST(req) {
 
     const openai = client();
     const completion = await openai.chat.completions.create({
-      model: "llama-3.2-11b-vision-preview", // مدل رایگان و بینایی Groq
+      model: "meta-llama/llama-4-scout-17b-16e-instruct", // مدل رایگان و بینایی Groq
       messages: [
         {
           role: "user",
