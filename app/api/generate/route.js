@@ -14,6 +14,8 @@ export async function POST(req) {
     
     const fileData = await generateFile(spec, outFormat);
     
+    if (!fileData || fileData.length < 10) throw new Error("فایل خالی تولید شد");
+
     return new Response(fileData, {
       headers: {
         "Content-Type": outFormat === "obj" ? "text/plain" : "model/stl",
@@ -21,6 +23,7 @@ export async function POST(req) {
       }
     });
   } catch (e) {
+    console.error("Generate API error:", e.message);
     return Response.json({ error: e.message }, { status: 500 });
   }
 }
