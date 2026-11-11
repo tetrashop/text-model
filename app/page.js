@@ -44,12 +44,13 @@ export default function Home() {
     if (!file) return;
     setOcrLoading(true);
     try {
-      // استفاده از Tesseract در سمت مرورگر
-      const Tesseract = (await import("tesseract.js")).default;
-      const { data: { text } } = await Tesseract.recognize(file, 'eng+fas');
+      const { createWorker } = await import("tesseract.js");
+      const worker = await createWorker("eng+fas");
+      const { data: { text } } = await worker.recognize(file);
+      await worker.terminate();
       if (text) setInput(v => v + "\n[از رسم استخراج شد]:\n" + text);
     } catch (err) {
-      alert("خطا در خواندن تصویر: " + err.message);
+      alert("خطا در خواندن تصویر: " + (err.message || "مشکل در پردازش"));
     } finally {
       setOcrLoading(false);
     }
