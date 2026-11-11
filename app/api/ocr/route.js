@@ -14,13 +14,15 @@ export async function POST(req) {
 
     const openai = client();
     const completion = await openai.chat.completions.create({
-      model: "openai/gpt-oss-120b",
+      model: "qwen/qwen3.8-27b", // مدل Vision گروک
       messages: [
-        { role: "system", content: "متن، اعداد، واحدها، تلرانس‌ها و نمادهای مهندسی را از این رسم استخراج کن. فقط متن استخراجی را برگردان." },
-        { role: "user", content: [
-          { type: "text", text: "این رسم را بخوان:" },
-          { type: "image_url", image_url: { url: "data:" + mime + ";base64," + base64 } }
-        ]}
+        { 
+          role: "user", 
+          content: [
+            { type: "text", text: "متن، اعداد، واحدها و ابعاد مهندسی این نقشه را استخراج کن. به فارسی و به صورت متنی بنویس که بتوان از آن برای مدل‌سازی سه‌بعدی استفاده کرد." },
+            { type: "image_url", image_url: { url: "data:" + mime + ";base64," + base64 } }
+          ]
+        }
       ],
       temperature: 0
     });
