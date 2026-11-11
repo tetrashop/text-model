@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import ModelViewer from "./components/ModelViewer";
 
 export default function Home() {
@@ -57,20 +57,27 @@ export default function Home() {
     }
   };
 
-  const download = async () => {
+  const download = async (format) => {
     if (!spec) return;
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec })
+      body: JSON.stringify({ spec, format })
     });
     if (!res.ok) return alert("خطا در تولید فایل");
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = (spec.name || "model") + ".stl";
+    a.download = (spec.name || "model") + "." + format;
     a.click();
+  };
+
+  // آپدیت ابعاد از طریق پنل ویرایش زنده
+  const updateAction = (index, key, value) => {
+    const newSpec = JSON.parse(JSON.stringify(spec));
+    newSpec.actions[index][key] = parseFloat(value) || 0;
+    setSpec(newSpec);
   };
 
   return (
@@ -93,11 +100,36 @@ export default function Home() {
           {ocrLoading ? "در حال خواندن..." : "آپلود رسم"}
           <input type="file" accept="image/*" onChange={upload} style={{ display: "block", marginTop: ".25rem" }} />
         </label>
+        
         {status === "ready" && (
           <div>
-            <button onClick={download} style={{ width: "100%", marginBottom: "1rem" }}>دانلود STL</button>
+            <div style={{ display: "flex", gap: ".5rem", marginBottom: "1rem" }}>
+              <button onClick={() => download("stl")} style={{ flex: 1 }}>دانلود STL</button>
+              <button onClick={() => download("obj")} style={{ flex: 1, background: "#fa3" }}>دانلود OBJ</button>
+            </div>
+            
             <h3>پیش‌نمایش</h3>
             <ModelViewer spec={spec} />
+
+            <h3 style={{ marginTop: "1rem" }}>ویرایش ابعاد</h3>
+            {spec?.actions?.map((act, i) => (
+              <div key={i} style={{ background: "#222", padding: ".5rem", marginBottom: ".5rem", borderRadius: "4px" }}>
+                <div style={{ color: "#3a6", marginBottom: ".25rem" }}>{i+1}. {act.type} ({act.operation})</div>
+                <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+                  {["w", "h", "d", "r", "x", "y", "z"].map(key => {
+                    if (act[key] !== undefined) {
+                      return (
+                        <label key={key} style={{ display: "flex", alignItems: "center", gap: ".2rem" }}>
+                          {key}:
+                          <input type="number" value={act[key]} onChange={(e) => updateAction(i, key, e.target.value)} style={{ width: "50px", background: "#111", color: "#fff", border: "1px solid #444" }} />
+                        </label>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
         <h3>spec</h3>

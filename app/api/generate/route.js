@@ -1,20 +1,23 @@
-import { specToSTL } from "@/lib/stl";
+import { generateFile } from "@/lib/stl";
 import { validateSpec } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
-    const { spec } = await req.json();
+    const { spec, format } = await req.json();
     const v = validateSpec(spec);
     if (!v.ok) return Response.json({ error: "spec نامعتبر", details: v.errors }, { status: 400 });
 
+    const outFormat = format || spec.format || "stl";
     const safe = (spec.name || "model").replace(/[^\w\-]+/g, "_").slice(0, 40) || "model";
-    const stl = specToSTL(spec);
-    return new Response(stl, {
+    
+    const fileData = generateFile(spec, outFormat);
+    
+    return new Response(fileData, {
       headers: {
-        "Content-Type": "model/stl",
-        "Content-Disposition": "attachment; filename=\"" + safe + ".stl\""
+        "Content-Type": outFormat === "obj" ? "text/plain" : "model/stl",
+        "Content-Disposition": `attachment; filename="${safe}.${outFormat}"`
       }
     });
   } catch (e) {
