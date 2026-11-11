@@ -44,11 +44,12 @@ export default function Home() {
     if (!file) return;
     setOcrLoading(true);
     try {
-      const { createWorker } = await import("tesseract.js");
-      const worker = await createWorker("eng+fas");
-      const { data: { text } } = await worker.recognize(file);
-      await worker.terminate();
-      if (text) setInput(v => v + "\n[از رسم استخراج شد]:\n" + text);
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/ocr", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (data.text) setInput(v => v + "\n[از رسم استخراج شد]:\n" + data.text);
     } catch (err) {
       alert("خطا در خواندن تصویر: " + (err.message || "مشکل در پردازش"));
     } finally {

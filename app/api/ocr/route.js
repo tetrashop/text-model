@@ -14,13 +14,13 @@ export async function POST(req) {
 
     const openai = client();
     const completion = await openai.chat.completions.create({
-      model: "qwen/qwen3.8-27b", // مدل Vision گروک
+      model: "llama-3.2-11b-vision-preview", // مدل رایگان و بینایی Groq
       messages: [
-        { 
-          role: "user", 
+        {
+          role: "user",
           content: [
-            { type: "text", text: "متن، اعداد، واحدها و ابعاد مهندسی این نقشه را استخراج کن. به فارسی و به صورت متنی بنویس که بتوان از آن برای مدل‌سازی سه‌بعدی استفاده کرد." },
-            { type: "image_url", image_url: { url: "data:" + mime + ";base64," + base64 } }
+            { type: "text", text: "متن، اعداد، واحدها، ابعاد و توضیحات مهندسی این نقشه را استخراج کن. به فارسی و به صورت متنی روان بنویس که بتوان از آن برای مدل‌سازی سه‌بعدی استفاده کرد (مثلا: مکعب ۴۰ در ۳۰)." },
+            { type: "image_url", image_url: { url: `data:${mime};base64,${base64}` } }
           ]
         }
       ],
