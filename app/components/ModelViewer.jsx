@@ -15,42 +15,69 @@ export default function ModelViewer({ spec }) {
     setError(null);
     setGeometry(null);
 
+    const controller = new AbortController();
+    // اگر سرور بیشتر از ۱۵ ثانیه طول کشید، درخواست را لغو کن
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec })
+      body: JSON.stringify({ spec }),
+      signal: controller.signal
     })
     .then(async res => {
-      if (!res.ok) throw new Error("خطا در پردازش سرور");
-      const text = await res.text();
-      if (!text.includes("facet") && !text.includes("vertex")) {
-        throw new Error("مدل خالی است (هندسه معتبری یافت نشد)");
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `خطای سرور (${res.status})`);
       }
+      const text = await res.text();
       
-      const loader = new STLLoader();
-      // استفاده از لودر دستی به جای useLoader برای جلوگیری از کرش کردن React
-      loader.parse(text, (geo) => {
+      // بررسی اینکه آیا سرور به جای فایل، خطا برگردانده است
+      if (text.startsWith("{")) throw new Error("خطا در ساخت هندسه مدل");
+      if (!text || text.length < 50) throw new Error("مدل خالی تولید شد");
+
+      try {
+        const loader = new STLLoader();
+        const geo = loader.parse(text);
         setGeometry(geo);
-        setLoading(false);
-      }, (err) => {
-        setError("خطا در خواندن فایل STL");
-        setLoading(false);
-      });
+      } catch (parseErr) {
+        throw new Error("فرمت فایل STL نامعتبر است");
+      }
     })
     .catch(err => {
-      setError(err.message);
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        setError("زمان پردازش طولانی شد. لطفاً دوباره تلاش کنید یا فایل را دانلود کنید.");
+      } else {
+        setError(err.message);
+      }
+    })
+    .finally(() => {
       setLoading(false);
     });
   }, [spec]);
 
-  if (loading) return <div className="flex-1 flex items-center justify-center text-brand animate-pulse font-medium">در حال آماده‌سازی مدل سه‌بعدی...</div>;
-  if (error) return <div className="flex-1 flex items-center justify-center text-red-400 p-6 text-center font-bold">خطا: {error}</div>;
+  if (loading) return (
+    <div className="flex-1 flex flex-col items-center justify-center text-brand space-y-4">
+      <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
+      <p className="animate-pulse font-medium">در حال ساخت و بارگذاری مدل سه‌بعدی...</p>
+      <p className="text-xs text-slate-400">(اگر طولانی شد، می‌توانید از دکمه‌های بالا فایل را دانلود کنید)</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex-1 flex flex-col items-center justify-center text-red-400 p-6 text-center">
+      <p className="font-bold mb-2">خطا در رندر مدل</p>
+      <p className="text-sm">{error}</p>
+    </div>
+  );
+
   if (!geometry) return <div className="flex-1 flex items-center justify-center text-slate-400">مدل خالی است.</div>;
 
   return (
     <div className="w-full h-full relative">
       <Canvas shadows camera={{ position: [50, 50, 50], fov: 50 }}>
-        {/* نورپردازی ساده به جای Stage برای جلوگیری از خطای موبایل */}
         <ambientLight intensity={0.6} />
         <directionalLight position={[10, 10, 10]} intensity={1.5} castShadow />
         <directionalLight position={[-10, -10, -10]} intensity={0.5} />
